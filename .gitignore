@@ -1,0 +1,4 @@
+node_modules/
+.env
+.cdn-manifest.json
+.cdn-temp/
