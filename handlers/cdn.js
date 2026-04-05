@@ -145,6 +145,12 @@ function generateFondoJson() {
 // ─── Handler principal ──────────────────────────────────────────────
 
 export default async (_client) => {
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'prod' || process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD === 'true';
+  if (isProduction) {
+    console.log('\n🌐 CDN Handler: Desactivado en entorno de producción.'.gray);
+    return;
+  }
+
   console.log('\n🌐 CDN Handler: Verificando assets...'.cyan);
 
   try {
