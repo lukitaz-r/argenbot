@@ -13,7 +13,6 @@ const rootDir = join(__dirname, '..');
 const GITHUB_USER = 'lukitaz-r';
 const GITHUB_REPO = 'assets';
 const GITHUB_BRANCH = 'main';
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@${GITHUB_BRANCH}/argenbot`;
 const MANIFEST_PATH = join(rootDir, '.cdn-manifest.json');
 const ASSETS_DIR = join(rootDir, 'assets');
 const TEMP_DIR = join(rootDir, '.cdn-temp');
@@ -79,37 +78,50 @@ function exec(cmd, cwd = rootDir) {
 // ─── Funciones de actualización de datos ─────────────────────────────
 
 /**
- * Actualiza cartas.json: cambia rutas locales _b64.js por URLs CDN
+ * Actualiza cartas.json usando URLs basadas en hash de commit
  */
-function updateCartasJson() {
+function updateCartasJson(cdnBaseUrl) {
   const cartasPath = join(rootDir, 'assets', 'cartas.json');
   if (!existsSync(cartasPath)) return;
 
   const cartas = JSON.parse(readFileSync(cartasPath, 'utf-8'));
   let modified = false;
 
+  const IS_CDN_REGEX = new RegExp(`^https://cdn\\.jsdelivr\\.net/gh/${GITHUB_USER}/${GITHUB_REPO}@[^/]+/argenbot/(.*)`);
+
   for (const carta of cartas) {
-    if (carta.ruta && !carta.ruta.startsWith('http')) {
-      // assets/cartas/normales/Aztro_b64.js → cartas/normales/Aztro.png
+    if (!carta.ruta) continue;
+
+    if (!carta.ruta.startsWith('http')) {
       let cdnPath = carta.ruta
         .replace(/^assets\//, '')
         .replace(/_b64\.js$/, '.png');
 
-      carta.ruta = `${CDN_BASE}/${encodeURI(cdnPath)}`;
+      carta.ruta = `${cdnBaseUrl}/${encodeURI(cdnPath)}`;
       modified = true;
+    } else {
+      const match = carta.ruta.match(IS_CDN_REGEX);
+      if (match) {
+        const relPathEncoded = match[1].split('?')[0];
+        const newUrl = `${cdnBaseUrl}/${relPathEncoded}`;
+        if (carta.ruta !== newUrl) {
+          carta.ruta = newUrl;
+          modified = true;
+        }
+      }
     }
   }
 
   if (modified) {
     writeFileSync(cartasPath, JSON.stringify(cartas, null, 4));
-    console.log('  📝 cartas.json actualizado con URLs CDN.'.cyan);
+    console.log('  📝 cartas.json actualizado a la versión de revisión actual.'.cyan);
   }
 }
 
 /**
- * Genera catalogo.json con el mapeo nombre → URL CDN
+ * Genera catalogo.json con la URL con el hash de commit
  */
-function generateCatalogoJson() {
+function generateCatalogoJson(cdnBaseUrl) {
   const catalogoDir = join(ASSETS_DIR, 'catalogo');
   if (!existsSync(catalogoDir)) return;
 
@@ -117,17 +129,17 @@ function generateCatalogoJson() {
   const mapping = {};
 
   for (const file of files) {
-    mapping[file] = `${CDN_BASE}/catalogo/${encodeURI(file)}`;
+    mapping[file] = `${cdnBaseUrl}/catalogo/${encodeURI(file)}`;
   }
 
   writeFileSync(join(ASSETS_DIR, 'catalogo.json'), JSON.stringify(mapping, null, 2));
-  console.log('  📝 catalogo.json generado con URLs CDN.'.cyan);
+  console.log('  📝 catalogo.json generado con revisión actual.'.cyan);
 }
 
 /**
- * Genera fondo.json con el mapeo nombre → URL CDN
+ * Genera fondo.json con la URL con el hash de commit
  */
-function generateFondoJson() {
+function generateFondoJson(cdnBaseUrl) {
   const fondoDir = join(ASSETS_DIR, 'fondo');
   if (!existsSync(fondoDir)) return;
 
@@ -135,11 +147,11 @@ function generateFondoJson() {
   const mapping = {};
 
   for (const file of files) {
-    mapping[file] = `${CDN_BASE}/fondo/${encodeURI(file)}`;
+    mapping[file] = `${cdnBaseUrl}/fondo/${encodeURI(file)}`;
   }
 
   writeFileSync(join(ASSETS_DIR, 'fondo.json'), JSON.stringify(mapping, null, 2));
-  console.log('  📝 fondo.json generado con URLs CDN.'.cyan);
+  console.log('  📝 fondo.json generado con revisión actual.'.cyan);
 }
 
 // ─── Handler principal ──────────────────────────────────────────────
@@ -177,22 +189,26 @@ export default async (_client) => {
     if (changedFiles.length === 0 && deletedFiles.length === 0) {
       console.log('✅ CDN Handler: No hay cambios en los assets. Todo actualizado.'.green);
 
-      // Aunque no haya cambios en los PNGs, asegurarse de que
-      // cartas.json y los JSONs auxiliares estén actualizados
-      updateCartasJson();
-      generateCatalogoJson();
-      generateFondoJson();
+      let commitHash = 'main';
+      try {
+        if (existsSync(join(TEMP_DIR, '.git'))) {
+          commitHash = exec('git rev-parse HEAD', TEMP_DIR).trim() || 'main';
+        } else {
+          const lsRemote = exec(`git ls-remote ${REPO_URL} HEAD`).trim();
+          commitHash = lsRemote.split(/\s+/)[0] || 'main';
+        }
+      } catch (err) { }
+      const cdnBaseUrl = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@${commitHash}/argenbot`;
+
+      updateCartasJson(cdnBaseUrl);
+      generateCatalogoJson(cdnBaseUrl);
+      generateFondoJson(cdnBaseUrl);
       return;
     }
 
     console.log(`📦 CDN Handler: ${changedFiles.length} archivos nuevos/modificados, ${deletedFiles.length} eliminados.`.yellow);
 
     // 4. Preparar el repositorio en un directorio temporal
-    if (existsSync(TEMP_DIR)) {
-      rmSync(TEMP_DIR, { recursive: true, force: true });
-    }
-
-    // Detectar si el repo remoto está vacío (sin commits)
     let repoIsEmpty = false;
     try {
       const lsRemote = exec(`git ls-remote ${REPO_URL} HEAD`).trim();
@@ -201,23 +217,52 @@ export default async (_client) => {
       repoIsEmpty = true;
     }
 
-    if (repoIsEmpty) {
-      // Repo vacío: inicializar localmente y vincular el remote
-      console.log('  📦 Repositorio vacío detectado. Inicializando...'.yellow);
-      mkdirSync(TEMP_DIR, { recursive: true });
-      exec('git init', TEMP_DIR);
-      exec('git branch -M main', TEMP_DIR);
-      exec(`git remote add origin ${REPO_URL}`, TEMP_DIR);
+    if (!existsSync(TEMP_DIR) || !existsSync(join(TEMP_DIR, '.git'))) {
+      if (existsSync(TEMP_DIR)) rmSync(TEMP_DIR, { recursive: true, force: true });
+      
+      if (repoIsEmpty) {
+        // Repo vacío: inicializar localmente y vincular el remote
+        console.log('  📦 Repositorio vacío detectado. Inicializando...'.yellow);
+        mkdirSync(TEMP_DIR, { recursive: true });
+        exec('git init', TEMP_DIR);
+        exec('git branch -M main', TEMP_DIR);
+        exec(`git remote add origin ${REPO_URL}`, TEMP_DIR);
+      } else {
+        // Repo con contenido: clonar por primera vez
+        console.log('  📥 Clonando repositorio de assets por primera vez...'.cyan);
+        try {
+          exec(`git clone ${REPO_URL} "${TEMP_DIR}"`);
+        } catch (cloneErr) {
+          console.error('  ❌ Error al clonar el repositorio. Asegurate de tener acceso.'.red);
+          console.error(`     Intentá: git clone ${REPO_URL}`.yellow);
+          console.error('     Si te pide credenciales, autenticá con: gh auth login'.yellow);
+          throw cloneErr;
+        }
+      }
     } else {
-      // Repo con contenido: clonar
-      console.log('  📥 Clonando repositorio de assets...'.cyan);
+      // El repositorio temporal existe y es un .git
+      console.log('  🔄 Sincronizando repositorio temporal con remoto...'.cyan);
       try {
-        exec(`git clone ${REPO_URL} "${TEMP_DIR}"`);
-      } catch (cloneErr) {
-        console.error('  ❌ Error al clonar el repositorio. Asegurate de tener acceso.'.red);
-        console.error(`     Intentá: git clone ${REPO_URL}`.yellow);
-        console.error('     Si te pide credenciales, autenticá con: gh auth login'.yellow);
-        throw cloneErr;
+        if (!repoIsEmpty) {
+          exec('git fetch origin main', TEMP_DIR);
+          exec('git reset --hard origin/main', TEMP_DIR);
+          exec('git clean -fd', TEMP_DIR);
+        } else {
+          // Si el remoto está vacío pero tenemos el repo temporal, nos aseguramos de estar en main limpios
+          exec('git reset --hard HEAD', TEMP_DIR);
+          exec('git clean -fd', TEMP_DIR);
+        }
+      } catch (err) {
+        console.log('  ⚠️ Falló la sincronización. Se recreará el repositorio.'.yellow);
+        rmSync(TEMP_DIR, { recursive: true, force: true });
+        if (repoIsEmpty) {
+          mkdirSync(TEMP_DIR, { recursive: true });
+          exec('git init', TEMP_DIR);
+          exec('git branch -M main', TEMP_DIR);
+          exec(`git remote add origin ${REPO_URL}`, TEMP_DIR);
+        } else {
+          exec(`git clone ${REPO_URL} "${TEMP_DIR}"`);
+        }
       }
     }
 
@@ -262,6 +307,21 @@ export default async (_client) => {
         exec(`git push -u origin ${GITHUB_BRANCH}`, TEMP_DIR);
         pushed = true;
         console.log(`  ✅ ${changedFiles.length} archivos sincronizados a GitHub.`.green);
+
+        // Purgar caché de los archivos alterados/eliminados en jsDelivr
+        const filesToPurge = [...changedFiles.map(f => f.relativePath), ...deletedFiles];
+        if (filesToPurge.length > 0) {
+          console.log(`  🧹 Purgando caché en jsDelivr para ${filesToPurge.length} archivos...`.cyan);
+          const purgeBase = `https://purge.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@${GITHUB_BRANCH}/argenbot`;
+          let purgedCount = 0;
+          for (const relPath of filesToPurge) {
+            try {
+              await fetch(`${purgeBase}/${encodeURI(relPath)}`);
+              purgedCount++;
+            } catch (e) { /* ignorar fallos individuales */ }
+          }
+          if (purgedCount > 0) console.log(`  ✅ Caché de jsDelivr purgada para ${purgedCount} archivos.`.green);
+        }
       } else {
         console.log('  ℹ️  El repositorio remoto ya estaba actualizado.'.cyan);
       }
@@ -274,21 +334,26 @@ export default async (_client) => {
     }
 
     // 8. Limpiar directorio temporal
-    try {
-      rmSync(TEMP_DIR, { recursive: true, force: true });
-    } catch { /* no es crítico */ }
+    // Optimización: ya no limpiamos el TEMP_DIR. Lo mantenemos para agilizar futuros deploys
+    // descargando solo el diferencial con git fetch origin main.
 
     // 9. Actualizar cartas.json y generar JSONs auxiliares
-    updateCartasJson();
-    generateCatalogoJson();
-    generateFondoJson();
+    let commitHash = 'main';
+    try {
+      commitHash = exec('git rev-parse HEAD', TEMP_DIR).trim() || 'main';
+    } catch { }
+    const cdnBaseUrl = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@${commitHash}/argenbot`;
+
+    updateCartasJson(cdnBaseUrl);
+    generateCatalogoJson(cdnBaseUrl);
+    generateFondoJson(cdnBaseUrl);
 
     // 10. Guardar manifiesto actualizado
     saveManifest(currentState);
 
     if (pushed) {
       console.log('🌐 CDN Handler: Sincronización completada exitosamente.'.green);
-      console.log(`   Base CDN: ${CDN_BASE}`.gray);
+      console.log(`   Base CDN: ${cdnBaseUrl}`.gray);
     } else {
       console.log('🌐 CDN Handler: URLs CDN generadas (push puede haber fallado, verificar credenciales).'.yellow);
     }
