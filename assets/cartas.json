@@ -1150,5 +1150,11 @@
         "ruta": "https://cdn.jsdelivr.net/gh/lukitaz-r/assets@main/argenbot/cartas/time_warps/Sinca.png",
         "nombre": "Sinca",
         "media": "83"
+    },
+    {
+        "tipo": "Plata Especial",
+        "ruta": "https://cdn.jsdelivr.net/gh/lukitaz-r/assets@main/argenbot/cartas/time_warps/Cavallo.png",
+        "nombre": "Cavallo",
+        "media": "73"
     }
 ]

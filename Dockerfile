@@ -2,12 +2,10 @@
 
 FROM oven/bun:latest
 
-# Set working directory
-WORKDIR /app
-
 # Install chromium and its dependencies for Puppeteer
 RUN apt-get update && apt-get install -y \
     chromium \
+    git \
     fonts-liberation \
     libasound2 \
     libatk-bridge2.0-0 \
@@ -51,7 +49,8 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Copy package and lock files
-COPY package.json bun.lockb ./
+COPY package.json ./
+COPY .env .env
 
 # Install project dependencies
 RUN bun install --production
@@ -60,4 +59,4 @@ RUN bun install --production
 COPY . .
 
 # Run the bot
-CMD ["bun", "run", "start"]
+CMD ["bun", "--env-file=.env", "run", "start"]
