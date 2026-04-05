@@ -4,7 +4,7 @@ node_modules/
 .cdn-temp/
 package-lock.json
 bun.lock
-./assets/cartas
-./assets/catalogo
-./assets/fondo
-./assets/packs
+assets/cartas
+assets/catalogo
+assets/fondo
+assets/packs
