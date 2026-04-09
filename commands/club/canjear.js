@@ -38,11 +38,14 @@ export default {
     let jugadoresElegibles;
     if (tipoPack === 'todos') {
       jugadoresElegibles = await Jugador.find({}).lean();
+    } else if (tipoPack === 'especial') {
+      jugadoresElegibles = await Jugador.find({
+        dir: { $not: new RegExp(`[\\\\/]normales[\\\\/]`, 'i') }
+      }).lean();
     } else {
       let carpetaMatches = tipoPack;
       switch (tipoPack) {
         case 'normal': carpetaMatches = 'normales'; break;
-        case 'especial': carpetaMatches = 'especiales'; break;
         case 'heroe': carpetaMatches = 'heroes'; break;
         case 'icono': carpetaMatches = 'iconos'; break;
         case 'time_warp': carpetaMatches = 'time_warps'; break;
@@ -75,8 +78,8 @@ export default {
           break;
         case 'Gordos Especiales':
         case 'Heroes de Argentine':
-          if (j.media >= 85) peso = 30;
-          else peso = 70;
+          if (j.media >= 85) peso = 20;
+          else peso = 80;
           break;
         case 'Iconos de Argentine':
         case 'Pack Malvado':

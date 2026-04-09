@@ -44,7 +44,8 @@ export default {
       const timeLeft = cooldownAmount - (now.getTime() - equipo.ultimoWork.getTime());
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-      return message.reply(`⏳ **Estás muy cansado para trabajar!** Podés volver a hacerlo en **${hours}h ${minutes}m**.`);
+      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+      return message.reply(`⏳ **Estás muy cansado para trabajar!** Podés volver a hacerlo en **${hours}h ${minutes}m ${seconds}s**.`);
     }
 
     // Calcula recompensa aleatoria entre 500 y 2500

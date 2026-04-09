@@ -13,15 +13,51 @@ function calcularValor(media, tipo) {
   let base = media * 100;
 
   // Bonus por tipo de carta
-  if (tipo.includes('Usuario del Año')) base *= 4;
-  else if (tipo.includes('Icons') || tipo.includes('Iconos')) base *= 3;
-  else if (tipo.includes('Heroes')) base *= 2.2;
-  else if (tipo.includes('Future Niggas') || tipo.includes('Flashbacks') || tipo.includes('Aniversario')) base *= 2;
-  else if (tipo.includes('Personas Malvadas')) base *= 1.8;
-  else if (tipo.includes('Personajes Olvidados')) base *= 1.5;
-  else if (tipo.includes('Oro Especial')) base *= 1.3;
-  else if (tipo.includes('Gordesliga')) base *= 1.1;
-  else if (tipo.includes('Plata')) base *= 0.8;
+  if (tipo.includes('Icono')) {
+    base *= 4
+    if (tipo.includes('Usuario del Año')) base *= 5;
+    else if (tipo.includes('Aniversario')) base *= 3;
+  } else if (tipo.includes('Heroes')) {
+    base *= 3
+    if (tipo.includes('Argentine Aniversario')) base *= 4;
+    else if (tipo.includes('Argentine')) base *= 3;
+  } else if (tipo.includes('Flashbacks')) {
+    base *= 4
+  }
+  else if (tipo.includes('Usuario del Año')) {
+    base *= 6
+  }
+  else if (tipo.includes('Future Niggas')) {
+    base *= 4
+  }
+  else if (tipo.includes('Nominados')) {
+    base *= 3
+    if (tipo.includes('Usuario del Año')) base *= 2
+  }
+  else if (tipo.includes('Future Niggas')) {
+    base *= 4
+  }
+  else if (tipo.includes('Argentine Aniversario')) {
+    base *= 4
+  } else if (tipo.includes('Personajes')) {
+    base *= 2
+    if (tipo.includes('Malvados')) base *= 2;
+    else if (tipo.includes('Olvidados')) base *= 3;
+  } else if (tipo.includes('Gordesliga Revivida')) {
+    base *= 3
+  } else if (tipo.includes('Oro')) {
+    base *= 1.5
+    if (tipo.includes('Especial')) base *= 2;
+    else if (tipo.includes('Común')) base *= 1.5;
+  } else if (tipo.includes('Plata')) {
+    base *= 1.25
+    if (tipo.includes('Especial')) base *= 1.5;
+    else if (tipo.includes('Común')) base *= 1.25;
+  } else if (tipo.includes('Bronce')) {
+    base *= 1.1
+    if (tipo.includes('Especial')) base *= 1.1;
+    else if (tipo.includes('Común')) base *= 0.9;
+  }
 
   return Math.round(base);
 }

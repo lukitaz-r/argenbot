@@ -29,14 +29,14 @@ export default async function seedPacks() {
         tipo: 'especial',
         dir: `${CDN_BASE}/packs/especial.png`,
         valor: 40000,
-        desc: 'Todos los jugadores especiales. 30% (+85), 70% (+80).'
+        desc: 'Todos los jugadores especiales. 20% (+85), 80% (+80).'
       },
       {
         nombre: 'Heroes de Argentine',
         tipo: 'heroe',
         dir: `${CDN_BASE}/packs/heroe.png`,
         valor: 50000,
-        desc: 'Héroes del club. 30% (+85), 70% (+80).'
+        desc: 'Héroes de Argentine. 30% (+85), 70% (+80).'
       },
       {
         nombre: 'Iconos de Argentine',

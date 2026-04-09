@@ -41,7 +41,7 @@ export default {
 
         let desc = '';
         lista.forEach((item, index) => {
-          desc += `**${inicio + index + 1}. ${item.jugadorData.nombre}** (${item.jugadorData.tipo})\n`;
+          desc += `**${inicio + index + 1}. ${item.jugadorData.nombre}** (${item.jugadorData.tipo}) | ${item.jugadorData.media}\n`;
           desc += `💰 Precio: $GDS ${formatNumber(item.precio)} | 👤 Vendedor: ${item.vendedorUserN}\n\n`;
         });
         embed.setDescription(desc);
