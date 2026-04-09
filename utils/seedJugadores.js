@@ -44,17 +44,17 @@ function calcularValor(media, tipo) {
     if (tipo.includes('Malvados')) base *= 2;
     else if (tipo.includes('Olvidados')) base *= 1.5;
   } else if (tipo.includes('Gordesliga Revivida')) {
-    base *= 2
+    base *= 1.75
   } else if (tipo.includes('Oro')) {
-    base *= 1.15
+    base *= 1.25
     if (tipo.includes('Especial')) base *= 1.25;
-    else if (tipo.includes('Común')) base *= 1.15;
+    else if (tipo.includes('Común')) base *= 1.1;
   } else if (tipo.includes('Plata')) {
-    base *= 1.1
+    base *= 1
     if (tipo.includes('Especial')) base *= 1.25;
     else if (tipo.includes('Común')) base *= 1.1;
   } else if (tipo.includes('Bronce')) {
-    base *= 1.1
+    base *= 0.9
     if (tipo.includes('Especial')) base *= 1.1;
     else if (tipo.includes('Común')) base *= 0.9;
   }
