@@ -47,8 +47,8 @@ export default {
     const exito = Math.random() < 0.25;
 
     if (exito) {
-      // Recompensa alta: entre 10000 y 25000
-      const recompensa = Math.floor(Math.random() * (25000 - 10000 + 1)) + 10000;
+      // Recompensa alta: entre 10000 y 35000
+      const recompensa = Math.floor(Math.random() * (35000 - 10000 + 1)) + 10000;
       equipo.dinero += recompensa;
       await equipo.save();
 

@@ -24,8 +24,8 @@ export default {
       return message.reply(`⏳ **Ya reclamaste tu daily!** Podés volver a hacerlo en **${hours}h ${minutes}m**.`);
     }
 
-    // Calcula recompensa aleatoria entre 5000 y 10000
-    const recompensa = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000;
+    // Calcula recompensa aleatoria entre 10000 y 20000
+    const recompensa = Math.floor(Math.random() * (20000 - 10000 + 1)) + 10000;
     
     equipo.dinero += recompensa;
     equipo.ultimoDaily = now;

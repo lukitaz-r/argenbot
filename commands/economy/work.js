@@ -48,8 +48,8 @@ export default {
       return message.reply(`⏳ **Estás muy cansado para trabajar!** Podés volver a hacerlo en **${hours}h ${minutes}m ${seconds}s**.`);
     }
 
-    // Calcula recompensa aleatoria entre 500 y 2500
-    const recompensa = Math.floor(Math.random() * (2500 - 500 + 1)) + 500;
+    // Calcula recompensa aleatoria entre 5000 y 7500
+    const recompensa = Math.floor(Math.random() * (7500 - 5000 + 1)) + 5000;
     
     equipo.dinero += recompensa;
     equipo.ultimoWork = now;
