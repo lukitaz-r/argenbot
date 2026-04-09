@@ -46,11 +46,11 @@ function calcularValor(media, tipo) {
   } else if (tipo.includes('Gordesliga Revivida')) {
     base *= 2
   } else if (tipo.includes('Oro')) {
-    base *= 1.5
-    if (tipo.includes('Especial')) base *= 1.5;
-    else if (tipo.includes('Común')) base *= 1.25;
+    base *= 1.15
+    if (tipo.includes('Especial')) base *= 1.25;
+    else if (tipo.includes('Común')) base *= 1.15;
   } else if (tipo.includes('Plata')) {
-    base *= 1.25
+    base *= 1.1
     if (tipo.includes('Especial')) base *= 1.25;
     else if (tipo.includes('Común')) base *= 1.1;
   } else if (tipo.includes('Bronce')) {
