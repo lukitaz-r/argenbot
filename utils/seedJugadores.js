@@ -15,12 +15,12 @@ function calcularValor(media, tipo) {
   // Bonus por tipo de carta
   if (tipo.includes('Icono')) {
     base *= 4
-    if (tipo.includes('Usuario del Año')) base *= 5;
-    else if (tipo.includes('Aniversario')) base *= 3;
+    if (tipo.includes('Usuario del Año')) base *= 2;
+    else if (tipo.includes('Aniversario')) base *= 1.5;
   } else if (tipo.includes('Heroes')) {
     base *= 3
-    if (tipo.includes('Argentine Aniversario')) base *= 4;
-    else if (tipo.includes('Argentine')) base *= 3;
+    if (tipo.includes('Argentine Aniversario')) base *= 2;
+    else if (tipo.includes('Argentine')) base *= 1.5;
   } else if (tipo.includes('Flashbacks')) {
     base *= 4
   }
@@ -31,8 +31,8 @@ function calcularValor(media, tipo) {
     base *= 4
   }
   else if (tipo.includes('Nominados')) {
-    base *= 3
-    if (tipo.includes('Usuario del Año')) base *= 2
+    base *= 2
+    if (tipo.includes('Usuario del Año')) base *= 1.5
   }
   else if (tipo.includes('Future Niggas')) {
     base *= 4
@@ -40,19 +40,19 @@ function calcularValor(media, tipo) {
   else if (tipo.includes('Argentine Aniversario')) {
     base *= 4
   } else if (tipo.includes('Personajes')) {
-    base *= 2
+    base *= 1.5
     if (tipo.includes('Malvados')) base *= 2;
-    else if (tipo.includes('Olvidados')) base *= 3;
+    else if (tipo.includes('Olvidados')) base *= 1.5;
   } else if (tipo.includes('Gordesliga Revivida')) {
-    base *= 3
+    base *= 2
   } else if (tipo.includes('Oro')) {
     base *= 1.5
-    if (tipo.includes('Especial')) base *= 2;
-    else if (tipo.includes('Común')) base *= 1.5;
-  } else if (tipo.includes('Plata')) {
-    base *= 1.25
     if (tipo.includes('Especial')) base *= 1.5;
     else if (tipo.includes('Común')) base *= 1.25;
+  } else if (tipo.includes('Plata')) {
+    base *= 1.25
+    if (tipo.includes('Especial')) base *= 1.25;
+    else if (tipo.includes('Común')) base *= 1.1;
   } else if (tipo.includes('Bronce')) {
     base *= 1.1
     if (tipo.includes('Especial')) base *= 1.1;
