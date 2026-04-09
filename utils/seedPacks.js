@@ -14,7 +14,7 @@ export default async function seedPacks() {
         nombre: 'Gordos Comunes',
         tipo: 'normal',
         dir: `${CDN_BASE}/packs/normal.png`,
-        valor: 5000,
+        valor: 7500,
         desc: 'Pack básico con jugadores normales. Probabilidad: 70% <77, 25% <86, 5% >=86.'
       },
       {
