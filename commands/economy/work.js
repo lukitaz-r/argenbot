@@ -37,11 +37,11 @@ export default {
       return message.reply('❌ **No tenés un club registrado!** Usá `ar!registro <nombre>` para crear uno.');
     }
 
-    const now = new Date();
+    const now = message.createdTimestamp;
     const cooldownAmount = 10 * 60 * 1000; // 10 minutes in ms
 
-    if (equipo.ultimoWork && (now.getTime() - equipo.ultimoWork.getTime()) < cooldownAmount) {
-      const timeLeft = cooldownAmount - (now.getTime() - equipo.ultimoWork.getTime());
+    if (equipo.ultimoWork && (now - equipo.ultimoWork.getTime()) < cooldownAmount) {
+      const timeLeft = cooldownAmount - (now - equipo.ultimoWork.getTime());
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);

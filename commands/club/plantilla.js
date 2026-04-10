@@ -220,7 +220,7 @@ export default {
         await interaction.reply({
           content: `👥 **Seleccioná un jugador para la posición ${posicion + 1}:**`,
           components: [selectRow],
-          ephemeral: true
+          flags: 64
         });
 
         // Collector para el select menu

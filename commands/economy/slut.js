@@ -32,11 +32,11 @@ export default {
       return message.reply('❌ **No tenés un club registrado!** Usá `ar!registro <nombre>` para crear uno.');
     }
 
-    const now = new Date();
+    const now = message.createdTimestamp;
     const cooldownAmount = 1 * 60 * 60 * 1000; // 1 hour in ms
 
-    if (equipo.ultimoSlut && (now.getTime() - equipo.ultimoSlut.getTime()) < cooldownAmount) {
-      const timeLeft = cooldownAmount - (now.getTime() - equipo.ultimoSlut.getTime());
+    if (equipo.ultimoSlut && (now - equipo.ultimoSlut.getTime()) < cooldownAmount) {
+      const timeLeft = cooldownAmount - (now - equipo.ultimoSlut.getTime());
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
       return message.reply(`⏳ **Aún te duele la cadera!** Podés volver a venderte en **${hours}h ${minutes}m**.`);

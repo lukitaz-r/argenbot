@@ -31,11 +31,11 @@ export default {
       return message.reply('❌ **No tenés un club registrado!** Usá `ar!registro <nombre>` para crear uno.');
     }
 
-    const now = new Date();
+    const now = message.createdTimestamp;
     const cooldownAmount = 2 * 60 * 60 * 1000; // 2 hours in ms
 
-    if (equipo.ultimoCrime && (now.getTime() - equipo.ultimoCrime.getTime()) < cooldownAmount) {
-      const timeLeft = cooldownAmount - (now.getTime() - equipo.ultimoCrime.getTime());
+    if (equipo.ultimoCrime && (now - equipo.ultimoCrime.getTime()) < cooldownAmount) {
+      const timeLeft = cooldownAmount - (now - equipo.ultimoCrime.getTime());
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
       return message.reply(`⏳ **La policía te está buscando!** Escondete. Podés volver a cometer un crimen en **${hours}h ${minutes}m**.`);

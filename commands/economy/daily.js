@@ -13,12 +13,12 @@ export default {
       return message.reply('❌ **No tenés un club registrado!** Usá `ar!registro <nombre>` para crear uno.');
     }
 
-    const now = new Date();
+    const now = message.createdTimestamp;
     const cooldownAmount = 24 * 60 * 60 * 1000; // 24 hours in ms
 
     // Verifica si ya reclamó y si fue hace menos de 24 hs
-    if (equipo.ultimoDaily && (now.getTime() - equipo.ultimoDaily.getTime()) < cooldownAmount) {
-      const timeLeft = cooldownAmount - (now.getTime() - equipo.ultimoDaily.getTime());
+    if (equipo.ultimoDaily && (now - equipo.ultimoDaily.getTime()) < cooldownAmount) {
+      const timeLeft = cooldownAmount - (now - equipo.ultimoDaily.getTime());
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
       return message.reply(`⏳ **Ya reclamaste tu daily!** Podés volver a hacerlo en **${hours}h ${minutes}m**.`);
