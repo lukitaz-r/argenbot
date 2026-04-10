@@ -200,7 +200,7 @@ export default {
         if (jugadoresReserva.length === 0) {
           return interaction.reply({
             content: '❌ **No tenés jugadores en la reserva!** Abrí packs con `ar!canjear <pack>` para obtener jugadores.',
-            ephemeral: true
+            flags: 64
           });
         }
 

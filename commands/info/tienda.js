@@ -106,7 +106,7 @@ export default {
         if (equipo.dinero < packSeleccionado.valor) {
           return interaction.followUp({
             content: `❌ **No tenés suficientes Godeanos!**\nNecesitás **$GDS ${formatNumber(packSeleccionado.valor)}** y tenés **$GDS ${formatNumber(equipo.dinero)}**.`,
-            flags: 64 // 64 = Ephemeral
+            flags: 64
           });
         }
 
