@@ -1,6 +1,6 @@
 import Equipo from '../../models/Equipo.js';
 import { AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } from 'discord.js';
-import nodeHtmlToImage from 'node-html-to-image';
+import sharp from 'sharp';
 import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -11,6 +11,12 @@ const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '..', '..');
 
 const CDN_BASE = 'https://cdn.jsdelivr.net/gh/lukitaz-r/assets@main/argenbot';
+const TEMPLATE_WIDTH = 700;
+const TEMPLATE_HEIGHT = 357;
+const CARD_WIDTH = 120;
+const CARD_HEIGHT = 168;
+
+const imageBufferCache = new Map();
 
 /**
  * Obtiene la URL de la imagen de una carta.
@@ -66,69 +72,82 @@ async function generarImagenPlantilla(equipo) {
   const placeholderUrl = obtenerPlaceholderUrl();
   const fondoUrl = obtenerFondoUrl();
 
-  const cartasHtml = equipo.equipo.map((slot, i) => {
-    let imgSrc;
-    if (slot.nombre && slot.dir) {
-      imgSrc = obtenerImagenUrl(slot.dir) || placeholderUrl;
-    } else {
-      imgSrc = placeholderUrl;
-    }
+  const placeholderBuffer = await obtenerBufferImagen(placeholderUrl);
+  const fondoBuffer = await obtenerBufferImagen(fondoUrl);
 
+  const composites = [];
+
+  if (fondoBuffer) {
+    const fondoResized = await sharp(fondoBuffer)
+      .resize(TEMPLATE_WIDTH, TEMPLATE_HEIGHT, { fit: 'fill' })
+      .png()
+      .toBuffer();
+
+    composites.push({
+      input: fondoResized,
+      left: 0,
+      top: 0
+    });
+  }
+
+  const cartasComposites = await Promise.all(equipo.equipo.map(async (slot, i) => {
     const pos = POSICIONES_CARTAS[i];
+    const imageUrl = (slot?.nombre && slot?.dir) ? (obtenerImagenUrl(slot.dir) || placeholderUrl) : placeholderUrl;
+    const sourceBuffer = (await obtenerBufferImagen(imageUrl)) || placeholderBuffer;
 
-    return `
-      <div class="carta" style="left: ${pos.x}px; top: ${pos.y}px;">
-        <img src="${imgSrc}" />
-      </div>
-    `;
-  }).join('');
+    if (!sourceBuffer) return null;
 
-  const html = `
-    <html>
-    <head>
-      <style>
-        body {
-          margin: 0;
-          padding: 0;
-          width: 700px;
-          height: 357px;
-          background: transparent;
-        }
-        .container {
-          width: 700px;
-          height: 357px;
-          position: relative;
-        }
-        .carta {
-          position: absolute;
-        }
-        .carta img {
-          width: 120px;
-          height: 168px;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <img src="${fondoUrl}" style="width: 700px; height: 357px;" />
-        ${cartasHtml}
-      </div>
-    </body>
-    </html>
-  `;
+    const cardBuffer = await sharp(sourceBuffer)
+      .resize(CARD_WIDTH, CARD_HEIGHT, { fit: 'fill' })
+      .png()
+      .toBuffer();
 
-  const image = await nodeHtmlToImage({
-    html,
-    quality: 100,
-    type: 'png',
-    transparent: true,
-    puppeteerArgs: {
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    return {
+      input: cardBuffer,
+      left: pos.x,
+      top: pos.y
+    };
+  }));
+
+  composites.push(...cartasComposites.filter(Boolean));
+
+  return sharp({
+    create: {
+      width: TEMPLATE_WIDTH,
+      height: TEMPLATE_HEIGHT,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 }
     }
-  });
+  })
+    .composite(composites)
+    .png({ quality: 100, compressionLevel: 9 })
+    .toBuffer();
+}
 
-  return image;
+async function obtenerBufferImagen(url) {
+  if (!url) return null;
+
+  if (imageBufferCache.has(url)) {
+    return imageBufferCache.get(url);
+  }
+
+  const pending = (async () => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.startsWith('image/')) return null;
+
+      const arrayBuffer = await res.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } catch {
+      return null;
+    }
+  })();
+
+  imageBufferCache.set(url, pending);
+  return pending;
 }
 
 export default {
