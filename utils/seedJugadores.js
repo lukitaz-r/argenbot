@@ -75,13 +75,15 @@ export default async function seedJugadores() {
     const cartasRaw = readFileSync(cartasPath, 'utf-8');
     const cartas = JSON.parse(cartasRaw);
 
-    const jugadores = cartas.map(c => ({
-      nombre: c.nombre,
-      tipo: c.tipo,
-      dir: c.ruta,
-      media: parseInt(c.media),
-      valor: calcularValor(parseInt(c.media), c.tipo)
-    }));
+    const jugadores = cartas
+      .filter(c => c.ruta && c.ruta.trim() !== '')
+      .map(c => ({
+        nombre: c.nombre,
+        tipo: c.tipo,
+        dir: c.ruta,
+        media: parseInt(c.media),
+        valor: calcularValor(parseInt(c.media), c.tipo)
+      }));
 
     await Jugador.insertMany(jugadores);
     console.log(`⚽ ${jugadores.length} jugadores cargados a la base de datos!`.green);
